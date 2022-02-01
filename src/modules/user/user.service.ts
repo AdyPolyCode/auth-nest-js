@@ -8,8 +8,6 @@ import { Model } from 'mongoose';
 
 import { User } from './model/User';
 
-import UserUpdateReqDto from './dtos/user-update';
-
 import TokenService from '../token/token.service';
 
 @Injectable()
@@ -55,7 +53,7 @@ export default class UserService {
         return user;
     }
 
-    async updateOne(id: string, data: UserUpdateReqDto): Promise<User> {
+    async updateOne(id: string, data: {}): Promise<User> {
         const user = await this.userModel.findByIdAndUpdate(id, data, {
             new: true,
         });
@@ -88,7 +86,6 @@ export default class UserService {
 
         const user = await this.userModel.findOne({
             _id: token.user.toString(),
-            isVerified: true,
         });
 
         if (!user) {
