@@ -27,12 +27,58 @@ import {
     ProductResDto,
 } from './dtos';
 
+import {
+    ApiCreatedResponse,
+    ApiNotFoundResponse,
+    ApiForbiddenResponse,
+    ApiOkResponse,
+    ApiConflictResponse,
+    ApiUnprocessableEntityResponse,
+    ApiBadRequestResponse,
+    ApiUnauthorizedResponse,
+    ApiTags,
+    ApiQuery,
+    ApiOperation,
+} from '@nestjs/swagger';
+
+@ApiTags('products')
 @Controller('/api/products')
 @UseGuards(AuthorizationGuard)
 @UseFilters(BaseExceptionFilter, MongoExceptionFilter)
 export default class ProductController {
     constructor(private productService: ProductService) {}
 
+    @ApiOperation({
+        summary: 'Fetch single product',
+        description:
+            'Request from client will query the database and the data will be sent on success. Response body as JSON format will contain and object with some properties. Can be performed either by USER or ADMIN.',
+        parameters: [
+            {
+                in: 'path',
+                name: 'id',
+                required: true,
+                description:
+                    'for single product query the path parameter "id" is required',
+            },
+        ],
+    })
+    @ApiOkResponse({
+        status: 200,
+        description: 'Product has been successfully sent',
+        type: ProductResDto,
+    })
+    @ApiBadRequestResponse({
+        description: 'Product was not found due to wrong path identifier',
+        schema: { example: { message: 'Wrong path identifier' } },
+    })
+    @ApiUnauthorizedResponse({
+        description: 'Unathorized user identity',
+        schema: { example: { message: 'Unathorized' } },
+    })
+    @ApiNotFoundResponse({
+        description: 'Product was not found due to something',
+        schema: { example: { message: 'Product was not found' } },
+    })
     @Get('/:id')
     @SetMetadata('role', ['USER', 'ADMIN'])
     async findOne(
@@ -47,6 +93,34 @@ export default class ProductController {
         };
     }
 
+    @ApiOperation({
+        summary: 'Fetch multiple products',
+        description:
+            'Request from client will query the database and the data will be sent on success. Response body as JSON format will contain and object with some properties. Can be performed either by USER or ADMIN.',
+    })
+    @ApiOkResponse({
+        status: 200,
+        description: 'Product has been successfully sent',
+        type: ProductResDto,
+    })
+    @ApiUnauthorizedResponse({
+        description: 'Unathorized user identity',
+        schema: { example: { message: 'Unathorized' } },
+    })
+    @ApiConflictResponse({
+        description: 'Product might be already created',
+        schema: { example: { message: 'Conflict' } },
+    })
+    @ApiQuery({
+        name: 'page',
+        type: Number,
+        required: false,
+    })
+    @ApiQuery({
+        name: 'limit',
+        type: Number,
+        required: false,
+    })
     @Get('/')
     @SetMetadata('role', ['USER', 'ADMIN'])
     async findMany(
@@ -67,6 +141,28 @@ export default class ProductController {
         };
     }
 
+    @ApiOperation({
+        summary: 'Create single product',
+        description:
+            'Request from client along with body data will be sent to the API and on success the database will populate/save the given data object. Can be performed only by ADMIN.',
+        requestBody: { $ref: '', required: true },
+    })
+    @ApiCreatedResponse({
+        description: 'Product has been successfully created',
+        type: ProductResDto,
+    })
+    @ApiUnprocessableEntityResponse({
+        description: 'Product was not created due to missing property',
+        schema: { example: { message: 'Validation error' } },
+    })
+    @ApiForbiddenResponse({
+        description: 'User is not allowed to make this move',
+        schema: { example: { message: 'Unathorized' } },
+    })
+    @ApiUnauthorizedResponse({
+        description: 'Unathorized user identity',
+        schema: { example: { message: 'Unathorized' } },
+    })
     @Post('/')
     @SetMetadata('role', ['ADMIN'])
     async createOne(
@@ -81,6 +177,45 @@ export default class ProductController {
         };
     }
 
+    @ApiOperation({
+        summary: 'Update single product',
+        description:
+            'Request from client along with body data will be sent to the API and on success the database will update/save the data object. Can be performed only by ADMIN.',
+        parameters: [
+            {
+                in: 'path',
+                name: 'id',
+                required: true,
+                description:
+                    'for single product query the path parameter "id" is required',
+            },
+        ],
+        requestBody: {
+            $ref: '',
+            required: true,
+        },
+    })
+    @ApiOkResponse({
+        status: 200,
+        description: 'Product has been successfully updated',
+        type: ProductResDto,
+    })
+    @ApiBadRequestResponse({
+        description: 'Product was not found due to wrong path identifier',
+        schema: { example: { message: 'Wrong path identifier' } },
+    })
+    @ApiUnauthorizedResponse({
+        description: 'Unathorized user identity',
+        schema: { example: { message: 'Unathorized' } },
+    })
+    @ApiForbiddenResponse({
+        description: 'User is not allowed to make this move',
+        schema: { example: { message: 'Unathorized' } },
+    })
+    @ApiNotFoundResponse({
+        description: 'Product was not found due to something',
+        schema: { example: { message: 'Product was not found' } },
+    })
     @Put('/:id')
     @SetMetadata('role', ['ADMIN'])
     async updateOne(
@@ -96,6 +231,41 @@ export default class ProductController {
         };
     }
 
+    @ApiOperation({
+        summary: 'Delete single product',
+        description:
+            'Request from client will be sent to the API and on success the database will delete the data object. Can be performed only by ADMIN.',
+        parameters: [
+            {
+                in: 'path',
+                name: 'id',
+                required: true,
+                description:
+                    'for single product query the path parameter "id" is required',
+            },
+        ],
+    })
+    @ApiOkResponse({
+        status: 200,
+        description: 'Product has been successfully updated',
+        type: ProductResDto,
+    })
+    @ApiBadRequestResponse({
+        description: 'Product was not found due to wrong path identifier',
+        schema: { example: { message: 'Wrong path identifier' } },
+    })
+    @ApiUnauthorizedResponse({
+        description: 'Unathorized user identity',
+        schema: { example: { message: 'Unathorized' } },
+    })
+    @ApiForbiddenResponse({
+        description: 'User is not allowed to make this move',
+        schema: { example: { message: 'Unathorized' } },
+    })
+    @ApiNotFoundResponse({
+        description: 'Product was not found due to something',
+        schema: { example: { message: 'Product was not found' } },
+    })
     @Delete('/:id')
     @SetMetadata('role', ['ADMIN'])
     async deleteOne(
