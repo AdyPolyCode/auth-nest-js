@@ -3,6 +3,7 @@ import {
     CanActivate,
     ExecutionContext,
     ForbiddenException,
+    UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 
@@ -24,9 +25,18 @@ export class AuthorizationGuard implements CanActivate {
 
         const roles = this.reflector.get('role', context.getHandler());
 
-        const tokenString = request.headers['x-authorization'].toString();
+        const tokenString = request.headers['x-authorization'];
 
-        const user = await this.userService.findByTokenString(tokenString);
+        if (!tokenString) {
+            throw new UnauthorizedException({
+                message: 'Authentication is needed',
+                statusCode: 401,
+            });
+        }
+
+        const user = await this.userService.findByTokenString(
+            tokenString.toString()
+        );
 
         if (!roles.includes(user.role)) {
             throw new ForbiddenException({
