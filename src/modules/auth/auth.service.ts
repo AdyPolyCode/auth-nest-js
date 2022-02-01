@@ -89,11 +89,12 @@ export default class AuthService {
         tokenString: string,
         data: ChangePasswordReqDto
     ): Promise<void> {
-        const { password } = data;
-
         const user = await this.userService.findByTokenString(tokenString);
 
-        const hash = this.encryptionService.createHash(user.salt, password);
+        const hash = this.encryptionService.createHash(
+            user.salt,
+            data['password1']
+        );
 
         await user.update({
             $set: {
