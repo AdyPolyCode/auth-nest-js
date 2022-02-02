@@ -3,6 +3,7 @@ import {
     CanActivate,
     ExecutionContext,
     UnauthorizedException,
+    BadRequestException,
 } from '@nestjs/common';
 import { Request } from 'express';
 
@@ -19,7 +20,7 @@ export class AuthenticationGuard implements CanActivate {
     private async checkToken(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest<Request>();
 
-        const tokenString = request.headers['x-authorization'].toString();
+        const tokenString = request.headers['x-authorization'];
 
         if (!tokenString) {
             throw new UnauthorizedException({
@@ -28,7 +29,16 @@ export class AuthenticationGuard implements CanActivate {
             });
         }
 
-        await this.userService.findByTokenString(tokenString);
+        const user = await this.userService.findByTokenString(
+            tokenString.toString()
+        );
+
+        if (!user.isVerified) {
+            throw new BadRequestException({
+                message: `Please verify your email`,
+                statusCode: 400,
+            });
+        }
 
         return true;
     }
